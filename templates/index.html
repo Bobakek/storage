@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Download and Manage Files</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f8f8f8;
+        }
+        h1 {
+            text-align: center;
+        }
+        .file-list {
+            list-style-type: none;
+            padding: 0;
+        }
+        .file-item {
+            margin: 10px 0;
+            background-color: #ffffff;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .file-info {
+            flex-grow: 1;
+            padding-right: 10px;
+        }
+        .file-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        button {
+            padding: 8px 16px;
+            color: #ffffff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button.download {
+            background-color: #007bff;
+        }
+        button.download:hover {
+            background-color: #0056b3;
+        }
+        button.delete {
+            background-color: #ff4d4d;
+        }
+        button.delete:hover {
+            background-color: #cc0000;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Manage Your Files</h1>
+    <ul id="file-list" class="file-list"></ul>
+
+    <script>
+        // Загружаем список файлов с сервера
+        async function loadFiles() {
+            try {
+                const response = await fetch('http://127.0.0.1:8000/files');
+                const data = await response.json();
+
+                const fileList = document.getElementById('file-list');
+                fileList.innerHTML = ""; // Очищаем список перед загрузкой новых данных
+
+                if (data.files && data.files.length > 0) {
+                    data.files.forEach(file => {
+                        // Создаём элементы списка
+                        const listItem = document.createElement('li');
+                        listItem.classList.add('file-item');
+
+                        const fileInfo = document.createElement('div');
+                        fileInfo.classList.add('file-info');
+                        fileInfo.innerHTML = `
+                            <strong>${file.name}</strong><br>
+                            Size: ${file.size ? (file.size / 1024).toFixed(2) + ' KB' : 'Unknown'}
+                        `;
+
+                        // Создаём контейнер для кнопок
+                        const buttonContainer = document.createElement('div');
+                        buttonContainer.classList.add('file-buttons');
+
+                        // Кнопка для скачивания
+                        const downloadButton = document.createElement('button');
+                        downloadButton.textContent = 'Download';
+                        downloadButton.classList.add('download');
+                        downloadButton.onclick = function() {
+                            window.location.href = `http://127.0.0.1:8000/files/${file.name}`;
+                        };
+
+                        // Кнопка для удаления
+                        const deleteButton = document.createElement('button');
+                        deleteButton.textContent = 'Delete';
+                        deleteButton.classList.add('delete');
+                        deleteButton.onclick = async function() {
+                            const confirmDelete = confirm(`Are you sure you want to delete ${file.name}?`);
+                            if (confirmDelete) {
+                                try {
+                                    const response = await fetch(`http://127.0.0.1:8000/files/${file.name}`, {
+                                        method: 'DELETE'
+                                    });
+                                    if (response.ok) {
+                                        alert(`File '${file.name}' successfully deleted.`);
+                                        listItem.remove(); // Удаляем элемент из списка
+                                    } else {
+                                        const errorData = await response.json();
+                                        alert(`Error: ${errorData.detail}`);
+                                    }
+                                } catch (error) {
+                                    console.error('Error deleting file:', error);
+                                }
+                            }
+                        };
+
+                        // Добавляем кнопки в контейнер
+                        buttonContainer.appendChild(downloadButton);
+                        buttonContainer.appendChild(deleteButton);
+
+                        // Добавляем информацию о файле и кнопки в элемент списка
+                        listItem.appendChild(fileInfo);
+                        listItem.appendChild(buttonContainer);
+
+                        // Добавляем элемент списка в DOM
+                        fileList.appendChild(listItem);
+                    });
+                } else {
+                    const noFilesMessage = document.createElement('p');
+                    noFilesMessage.textContent = 'No files available';
+                    document.body.appendChild(noFilesMessage);
+                }
+            } catch (error) {
+                console.error('Error fetching files:', error);
+            }
+        }
+
+        // Загружаем список файлов при загрузке страницы
+        loadFiles();
+    </script>
+
+</body>
+</html>
