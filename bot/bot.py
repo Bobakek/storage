@@ -7,22 +7,22 @@ from aiogram import F
 from dotenv import load_dotenv
 import asyncio
 
-# Загрузка переменных окружения
+
 load_dotenv()
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 DB_PATH = "./storage/db.json"
 DB_DIR = './storage'
 
-# Инициализация объектов
+
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 
 
-# Функция для загрузки базы данных
+
 def load_db():
-    if not os.path.exists(DB_PATH):  # Если файл не существует, создаем пустой файл
-        os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)  # Создаем директорию, если её нет
+    if not os.path.exists(DB_PATH):  
+        os.makedirs(os.path.dirname(DB_PATH), exist_ok=True) 
         with open(DB_PATH, "w") as f:
             json.dump({}, f)  # Пустой словарь
 
@@ -33,7 +33,7 @@ def load_db():
             return {}
 
 
-# Функция для сохранения базы данных
+
 def save_db(data):
     print(f"Saving to DB: {data}")  # Отладочная информация
     with open(DB_PATH, "w") as f:
